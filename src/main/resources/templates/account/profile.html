@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Account')}"></head>
+<body>
+<a th:replace="~{fragments/layout :: skip}"></a>
+<header th:replace="~{fragments/layout :: site-header}"></header>
+<div th:replace="~{fragments/layout :: alerts}"></div>
+
+<main id="main" class="container page">
+    <div class="page-head">
+        <div>
+            <h1>Account</h1>
+            <p>Buyers see your name and department on your listings. Email and phone are only shown to signed-in students.</p>
+        </div>
+    </div>
+
+    <div class="account">
+        <div class="account__id">
+            <span class="avatar avatar--lg" aria-hidden="true" th:text="${@fmt.initials(user.fullName)}">AP</span>
+            <div>
+                <p><strong th:text="${user.fullName}">Aarav Patel</strong></p>
+                <p class="muted small" th:text="${user.email}">student1@campus.edu</p>
+                <p class="muted small" th:text="'Member since ' + ${@fmt.date(user.createdAt)}">Member since 1 Oct 2026</p>
+            </div>
+            <a th:href="@{/my/listings}" class="link-more small">Go to my listings
+                <svg th:replace="~{fragments/icons :: icon('arrow-right')}"></svg></a>
+        </div>
+
+        <div>
+            <form th:action="@{/account}" th:object="${profileForm}" method="post" class="form-card" novalidate>
+                <h2>Profile</h2>
+                <p>How you appear to other students.</p>
+                <div class="field">
+                    <label for="fullName" class="label">Full name</label>
+                    <input type="text" id="fullName" th:field="*{fullName}" class="input" th:errorclass="is-invalid"
+                           autocomplete="name" maxlength="100" required
+                           th:attr="aria-invalid=${#fields.hasErrors('fullName')} ? 'true' : null,aria-describedby=${#fields.hasErrors('fullName')} ? 'fullName-error' : null">
+                    <p th:replace="~{fragments/layout :: field-error('fullName')}"></p>
+                </div>
+                <div class="field-row">
+                    <div class="field">
+                        <label for="department" class="label">Department <span class="optional">Optional</span></label>
+                        <input type="text" id="department" th:field="*{department}" class="input" th:errorclass="is-invalid"
+                               maxlength="100" placeholder="e.g. Computer Science"
+                               th:attr="aria-invalid=${#fields.hasErrors('department')} ? 'true' : null,aria-describedby=${#fields.hasErrors('department')} ? 'department-error' : null">
+                        <p th:replace="~{fragments/layout :: field-error('department')}"></p>
+                    </div>
+                    <div class="field">
+                        <label for="phone" class="label">Mobile number <span class="optional">Optional</span></label>
+                        <input type="tel" id="phone" th:field="*{phone}" class="input" th:errorclass="is-invalid"
+                               autocomplete="tel" inputmode="tel" maxlength="16" placeholder="9876543210"
+                               th:attr="aria-invalid=${#fields.hasErrors('phone')} ? 'true' : null,aria-describedby=${#fields.hasErrors('phone')} ? 'phone-error' : null">
+                        <p th:replace="~{fragments/layout :: field-error('phone')}"></p>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn--primary" data-busy-label="Saving"><span>Save profile</span></button>
+                </div>
+            </form>
+
+            <form th:action="@{/account/password}" th:object="${passwordForm}" method="post" class="form-card" novalidate id="password">
+                <h2>Password</h2>
+                <p>Use at least 8 characters with a letter and a number.</p>
+                <div class="field">
+                    <label for="currentPassword" class="label">Current password</label>
+                    <input type="password" id="currentPassword" th:field="*{currentPassword}" class="input" th:errorclass="is-invalid"
+                           autocomplete="current-password" maxlength="64" required
+                           th:attr="aria-invalid=${#fields.hasErrors('currentPassword')} ? 'true' : null,aria-describedby=${#fields.hasErrors('currentPassword')} ? 'currentPassword-error' : null">
+                    <p th:replace="~{fragments/layout :: field-error('currentPassword')}"></p>
+                </div>
+                <div class="field-row">
+                    <div class="field">
+                        <label for="newPassword" class="label">New password</label>
+                        <input type="password" id="newPassword" th:field="*{newPassword}" class="input" th:errorclass="is-invalid"
+                               autocomplete="new-password" minlength="8" maxlength="64" required
+                               th:attr="aria-invalid=${#fields.hasErrors('newPassword')} ? 'true' : null,aria-describedby=${#fields.hasErrors('newPassword')} ? 'newPassword-error' : null">
+                        <p th:replace="~{fragments/layout :: field-error('newPassword')}"></p>
+                    </div>
+                    <div class="field">
+                        <label for="pwConfirm" class="label">Confirm new password</label>
+                        <input type="password" id="pwConfirm" th:field="*{confirmPassword}" class="input"
+                               th:classappend="${#fields.hasErrors('confirmPassword') or #fields.hasErrors('confirmPasswordValid')} ? 'is-invalid'"
+                               autocomplete="new-password" maxlength="64" required
+                               th:attr="aria-invalid=${#fields.hasErrors('confirmPassword') or #fields.hasErrors('confirmPasswordValid')} ? 'true' : null">
+                        <p th:replace="~{fragments/layout :: field-error('confirmPassword')}"></p>
+                        <p th:replace="~{fragments/layout :: field-error('confirmPasswordValid')}"></p>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn--primary" data-busy-label="Updating"><span>Change password</span></button>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

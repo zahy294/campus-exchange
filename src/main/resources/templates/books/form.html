@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head(${isEdit} ? 'Edit textbook' : 'List a textbook')}"></head>
+<body>
+<a th:replace="~{fragments/layout :: skip}"></a>
+<header th:replace="~{fragments/layout :: site-header}"></header>
+<div th:replace="~{fragments/layout :: alerts}"></div>
+
+<main id="main" class="container page">
+    <div class="form-shell">
+        <a th:href="${isEdit} ? @{/books/{id}(id=${bookId})} : @{/books}" class="link-back">
+            <svg th:replace="~{fragments/icons :: icon('arrow-left')}"></svg>
+            <span th:text="${isEdit} ? 'Back to listing' : 'Back to textbooks'">Back</span>
+        </a>
+        <div class="page-head">
+            <div>
+                <h1 th:text="${isEdit} ? 'Edit your textbook' : 'List a textbook'">List a textbook</h1>
+                <p th:unless="${isEdit}">Takes about a minute. Students find books by subject and semester, so fill those in.</p>
+            </div>
+        </div>
+
+        <form th:action="${isEdit} ? @{/books/{id}(id=${bookId})} : @{/books}" th:object="${bookForm}"
+              method="post" class="form-card" novalidate>
+
+            <p class="flash flash--error" role="alert" th:if="${#fields.hasErrors('*')}">
+                <svg th:replace="~{fragments/icons :: icon('alert')}"></svg>
+                <span>Some details need fixing. They&rsquo;re marked below.</span>
+            </p>
+
+            <fieldset class="fieldset">
+                <legend>The book</legend>
+                <div class="field">
+                    <label for="title" class="label">Title</label>
+                    <input type="text" id="title" th:field="*{title}" class="input" th:errorclass="is-invalid"
+                           maxlength="200" required placeholder="e.g. Operating System Concepts"
+                           th:attr="aria-invalid=${#fields.hasErrors('title')} ? 'true' : null,aria-describedby=${#fields.hasErrors('title')} ? 'title-error' : null">
+                    <p th:replace="~{fragments/layout :: field-error('title')}"></p>
+                </div>
+                <div class="field">
+                    <label for="author" class="label">Author or authors</label>
+                    <input type="text" id="author" th:field="*{author}" class="input" th:errorclass="is-invalid"
+                           maxlength="150" required placeholder="e.g. Silberschatz, Galvin, Gagne"
+                           th:attr="aria-invalid=${#fields.hasErrors('author')} ? 'true' : null,aria-describedby=${#fields.hasErrors('author')} ? 'author-error' : null">
+                    <p th:replace="~{fragments/layout :: field-error('author')}"></p>
+                </div>
+                <div class="field">
+                    <label for="isbn" class="label">ISBN <span class="optional">Optional</span></label>
+                    <input type="text" id="isbn" th:field="*{isbn}" class="input" th:errorclass="is-invalid"
+                           maxlength="20" inputmode="numeric" autocomplete="off" placeholder="978-0262033848"
+                           th:attr="aria-invalid=${#fields.hasErrors('isbn')} ? 'true' : null,aria-describedby=${#fields.hasErrors('isbn')} ? 'isbn-error' : 'isbn-hint'">
+                    <p class="hint" id="isbn-hint" th:unless="${#fields.hasErrors('isbn')}">The 10 or 13 digits on the back cover, so buyers get the right edition.</p>
+                    <p th:replace="~{fragments/layout :: field-error('isbn')}"></p>
+                </div>
+            </fieldset>
+
+            <fieldset class="fieldset">
+                <legend>Course</legend>
+                <div class="field-row">
+                    <div class="field">
+                        <label for="subject" class="label">Subject <span class="optional">Optional</span></label>
+                        <input type="text" id="subject" th:field="*{subject}" class="input" th:errorclass="is-invalid"
+                               maxlength="100" placeholder="e.g. Operating Systems"
+                               th:attr="aria-invalid=${#fields.hasErrors('subject')} ? 'true' : null,aria-describedby=${#fields.hasErrors('subject')} ? 'subject-error' : null">
+                        <p th:replace="~{fragments/layout :: field-error('subject')}"></p>
+                    </div>
+                    <div class="field">
+                        <label for="semester" class="label">Semester <span class="optional">Optional</span></label>
+                        <select id="semester" th:field="*{semester}" class="input" th:errorclass="is-invalid"
+                                th:attr="aria-invalid=${#fields.hasErrors('semester')} ? 'true' : null,aria-describedby=${#fields.hasErrors('semester')} ? 'semester-error' : null">
+                            <option value="">Not specific to a semester</option>
+                            <option th:each="sem : ${#numbers.sequence(1, 8)}" th:value="${sem}" th:text="'Semester ' + ${sem}">Semester 1</option>
+                        </select>
+                        <p th:replace="~{fragments/layout :: field-error('semester')}"></p>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset class="fieldset">
+                <legend>Condition and price</legend>
+                <div class="field">
+                    <p class="label" id="condition-label">Condition</p>
+                    <div class="choices" role="radiogroup" aria-labelledby="condition-label"
+                         th:classappend="${#fields.hasErrors('condition')} ? 'is-invalid'"
+                         th:attr="aria-describedby=${#fields.hasErrors('condition')} ? 'condition-error' : null">
+                        <label class="choice" th:each="cond : ${conditions}">
+                            <input type="radio" th:field="*{condition}" th:value="${cond}" required>
+                            <span class="choice__face">
+                                <span th:replace="~{fragments/cards :: wear(${cond})}"></span>
+                                <span class="choice__hint" th:text="${cond.hint}">Normal use, light marks</span>
+                            </span>
+                        </label>
+                    </div>
+                    <p th:replace="~{fragments/layout :: field-error('condition')}"></p>
+                </div>
+                <div class="field">
+                    <label for="price" class="label">Price</label>
+                    <div class="input-affix">
+                        <span class="input-affix__sign" aria-hidden="true">₹</span>
+                        <input type="number" id="price" th:field="*{price}" class="input" th:errorclass="is-invalid"
+                               step="0.01" min="0" max="500000" inputmode="decimal" required placeholder="450"
+                               th:attr="aria-invalid=${#fields.hasErrors('price')} ? 'true' : null,aria-describedby=${#fields.hasErrors('price')} ? 'price-error' : 'price-hint'">
+                    </div>
+                    <p class="hint" id="price-hint" th:unless="${#fields.hasErrors('price')}">In rupees, up to ₹5,00,000. Enter 0 to give it away free.</p>
+                    <p th:replace="~{fragments/layout :: field-error('price')}"></p>
+                </div>
+            </fieldset>
+
+            <fieldset class="fieldset">
+                <legend>Notes for buyers</legend>
+                <div class="field">
+                    <label for="description" class="label">Description <span class="optional">Optional</span></label>
+                    <textarea id="description" th:field="*{description}" class="input" th:errorclass="is-invalid" rows="4"
+                              maxlength="1000" data-counter="description-count"
+                              placeholder="Edition, highlighting, missing pages, anything included (solutions manual, notes)"
+                              th:attr="aria-invalid=${#fields.hasErrors('description')} ? 'true' : null,aria-describedby=${#fields.hasErrors('description')} ? 'description-error' : 'description-count'"></textarea>
+                    <p class="counter" id="description-count" aria-live="polite"></p>
+                    <p th:replace="~{fragments/layout :: field-error('description')}"></p>
+                </div>
+            </fieldset>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn--primary btn--lg"
+                        th:attr="data-busy-label=${isEdit} ? 'Saving' : 'Publishing'">
+                    <span th:text="${isEdit} ? 'Save changes' : 'Publish listing'">Publish listing</span>
+                </button>
+                <a th:href="${isEdit} ? @{/books/{id}(id=${bookId})} : @{/books}" class="btn btn--ghost">Cancel</a>
+            </div>
+        </form>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

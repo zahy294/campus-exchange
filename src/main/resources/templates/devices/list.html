@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Devices')}"></head>
+<body>
+<a th:replace="~{fragments/layout :: skip}"></a>
+<header th:replace="~{fragments/layout :: site-header}"></header>
+<div th:replace="~{fragments/layout :: alerts}"></div>
+
+<main id="main" class="container page">
+    <div class="page-head">
+        <div>
+            <h1>Devices</h1>
+            <p>Calculators, laptops, tablets and accessories from students who&rsquo;ve upgraded.</p>
+        </div>
+        <div class="page-head__actions">
+            <a th:href="@{/devices/new}" class="btn btn--primary">
+                <svg th:replace="~{fragments/icons :: icon('plus')}"></svg> List a device
+            </a>
+        </div>
+    </div>
+
+    <!-- Works without JS too: submitting reloads /devices with the query string, which the script reads. -->
+    <form class="filters" id="device-filters" role="search" aria-label="Filter devices" method="get" th:action="@{/devices}">
+        <div class="field field--search">
+            <label for="deviceQuery" class="label">Search</label>
+            <input type="search" id="deviceQuery" name="q" class="input" maxlength="100" placeholder="Name or brand, e.g. Casio">
+        </div>
+        <div class="field">
+            <label for="deviceCategory" class="label">Category</label>
+            <select id="deviceCategory" name="category" class="input">
+                <option value="">All categories</option>
+                <option th:each="cat : ${categories}" th:value="${cat.name()}" th:text="${cat.label}">Laptop</option>
+            </select>
+        </div>
+        <div class="field">
+            <label for="deviceSort" class="label">Sort by</label>
+            <select id="deviceSort" name="sort" class="input">
+                <option th:each="opt : ${sorts}" th:value="${opt.key}" th:text="${opt.label}">Newest first</option>
+            </select>
+        </div>
+        <div class="filters__actions">
+            <button type="submit" class="btn btn--primary">
+                <svg th:replace="~{fragments/icons :: icon('search')}"></svg> Search
+            </button>
+        </div>
+    </form>
+
+    <div class="results-bar">
+        <p id="deviceStatus" role="status" aria-live="polite">Loading devices&hellip;</p>
+    </div>
+
+    <h2 class="visually-hidden">Results</h2>
+    <div id="deviceGrid" class="board" aria-busy="true">
+        <div class="notice notice--skeleton" aria-hidden="true" th:each="i : ${#numbers.sequence(1, 6)}">
+            <span class="sk sk--line sk--short"></span>
+            <span class="sk sk--title"></span>
+            <span class="sk sk--line"></span>
+            <span class="sk sk--price"></span>
+        </div>
+    </div>
+
+    <div class="pagination" id="devicePager" hidden>
+        <button type="button" class="btn" id="loadMore">Show more devices</button>
+    </div>
+
+    <noscript>
+        <div class="empty">
+            <h3>This list needs JavaScript</h3>
+            <p>The device catalogue loads from our <a th:href="@{/api/devices}">devices JSON feed</a>. Turn on JavaScript to browse it here.</p>
+        </div>
+    </noscript>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+<script th:inline="javascript">
+    /* Client-side rendering from the public REST API (GET /api/devices). */
+    (function () {
+        "use strict";
+        const base = /*[[@{/}]]*/ "/";
+        const PAGE_SIZE = 12;
+        const grid = document.getElementById("deviceGrid");
+        const status = document.getElementById("deviceStatus");
+        const pager = document.getElementById("devicePager");
+        const loadMore = document.getElementById("loadMore");
+        const form = document.getElementById("device-filters");
+        const q = document.getElementById("deviceQuery");
+        const category = document.getElementById("deviceCategory");
+        const sort = document.getElementById("deviceSort");
+
+        // Labels, grades, categories and sort keys all come from the server (the Java enums):
+        // the API sends categoryLabel / conditionLabel / conditionGrade, and the selects are rendered from the enums.
+        const optionValues = (select) => [...select.options].map((o) => o.value);
+        const inrWhole = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 });
+        const inrPaise = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", minimumFractionDigits: 2 });
+        const inr = { format: (n) => (Number.isInteger(n) ? inrWhole : inrPaise).format(n) };
+        const days = (iso) => {
+            if (!iso) return "";
+            const d = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+            return d <= 0 ? "Listed today" : d === 1 ? "Listed yesterday" : "Listed " + d + " days ago";
+        };
+
+        let page = 0;
+        let controller = null;
+
+        // Restore filters from the URL (shareable links, no-JS submits, back button)
+        const params = new URLSearchParams(location.search);
+        q.value = params.get("q") || "";
+        category.value = optionValues(category).includes(params.get("category")) ? params.get("category") : "";
+        sort.value = optionValues(sort).includes(params.get("sort")) ? params.get("sort") : sort.options[0].value;
+
+        function escapeHtml(value) {
+            return String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+        }
+
+        function card(d) {
+            return `<article class="notice notice--device">
+                <div class="notice__top">
+                    <span class="wear" data-grade="${Number(d.conditionGrade) || 0}"><span class="wear__bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="wear__label">${escapeHtml(d.conditionLabel || d.condition)}</span></span>
+                    <span class="tag tag--device">${escapeHtml(d.categoryLabel || d.category)}</span>
+                </div>
+                <h3 class="notice__title"><a class="notice__link" href="${base}devices/${encodeURIComponent(d.id)}">${escapeHtml(d.name)}</a></h3>
+                ${d.brand ? `<p class="notice__by">${escapeHtml(d.brand)}</p>` : ""}
+                <div class="notice__foot">
+                    <span class="price">${escapeHtml(inr.format(Number(d.price)))}</span>
+                    <span class="notice__when">${escapeHtml(days(d.createdAt))}</span>
+                </div>
+            </article>`;
+        }
+
+        function syncUrl() {
+            const p = new URLSearchParams();
+            if (q.value.trim()) p.set("q", q.value.trim());
+            if (category.value) p.set("category", category.value);
+            if (sort.value !== sort.options[0].value) p.set("sort", sort.value);
+            const qs = p.toString();
+            history.replaceState(null, "", location.pathname + (qs ? "?" + qs : ""));
+        }
+
+        async function load(append) {
+            if (controller) controller.abort();
+            controller = new AbortController();
+            page = append ? page + 1 : 0;
+
+            const url = new URL(base + "api/devices", location.origin);
+            url.searchParams.set("size", PAGE_SIZE);
+            url.searchParams.set("page", page);
+            url.searchParams.set("sort", sort.value);
+            if (q.value.trim()) url.searchParams.set("q", q.value.trim());
+            if (category.value) url.searchParams.set("category", category.value);
+
+            grid.setAttribute("aria-busy", "true");
+            if (append) { loadMore.classList.add("is-busy"); loadMore.textContent = "Loading…"; }
+            else status.textContent = "Loading devices…";
+
+            try {
+                const res = await fetch(url, { headers: { Accept: "application/json" }, signal: controller.signal });
+                if (!res.ok) throw new Error("status " + res.status);
+                const data = await res.json();
+                const items = data.content || [];
+                const total = data.totalElements ?? (data.page && data.page.totalElements) ?? items.length;
+                const totalPages = data.totalPages ?? (data.page && data.page.totalPages) ?? 1;
+
+                if (!append && items.length === 0) {
+                    const filtered = q.value.trim() || category.value;
+                    grid.innerHTML = `<div class="empty" style="grid-column: 1 / -1">
+                        <h3>${filtered ? "No devices match" : "No devices listed yet"}</h3>
+                        <p>${filtered ? "Try another category or a shorter search." : "Upgraded your calculator or laptop? Someone in first year needs your old one."}</p>
+                        <div class="empty__actions">
+                            ${filtered ? `<a class="btn" href="${base}devices">Clear filters</a>` : ""}
+                            <a class="btn btn--primary" href="${base}devices/new">List a device</a>
+                        </div></div>`;
+                } else if (append) {
+                    grid.insertAdjacentHTML("beforeend", items.map(card).join(""));
+                } else {
+                    grid.innerHTML = items.map(card).join("");
+                }
+
+                status.innerHTML = `<strong>${total}</strong> ${total === 1 ? "device" : "devices"} available`;
+                pager.hidden = page >= totalPages - 1;
+            } catch (err) {
+                if (err.name === "AbortError") return;
+                const offline = !navigator.onLine;
+                status.textContent = "Couldn't load devices.";
+                if (!append) {
+                    grid.innerHTML = `<div class="empty empty--error" style="grid-column: 1 / -1">
+                        <h3>${offline ? "You seem to be offline" : "The device list didn't load"}</h3>
+                        <p>${offline ? "Check your connection, then try again." : "This is usually temporary. Try again in a moment."}</p>
+                        <div class="empty__actions"><button type="button" class="btn btn--primary" data-retry>Try again</button></div></div>`;
+                }
+            } finally {
+                grid.setAttribute("aria-busy", "false");
+                loadMore.classList.remove("is-busy");
+                loadMore.textContent = "Show more devices";
+            }
+        }
+
+        let debounce;
+        q.addEventListener("input", () => {
+            clearTimeout(debounce);
+            debounce = setTimeout(() => { syncUrl(); load(false); }, 300);
+        });
+        category.addEventListener("change", () => { syncUrl(); load(false); });
+        sort.addEventListener("change", () => { syncUrl(); load(false); });
+        form.addEventListener("submit", (e) => { e.preventDefault(); syncUrl(); load(false); });
+        loadMore.addEventListener("click", () => load(true));
+        grid.addEventListener("click", (e) => { if (e.target.closest("[data-retry]")) load(false); });
+
+        load(false);
+    })();
+</script>
+</body>
+</html>

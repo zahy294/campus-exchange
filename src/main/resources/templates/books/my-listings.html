@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('My listings')}"></head>
+<body>
+<a th:replace="~{fragments/layout :: skip}"></a>
+<header th:replace="~{fragments/layout :: site-header}"></header>
+<div th:replace="~{fragments/layout :: alerts}"></div>
+
+<main id="main" class="container page">
+    <div class="page-head">
+        <div>
+            <h1>My listings</h1>
+            <p class="summary-line" th:if="${activeCount + soldCount > 0}">
+                You have <strong th:text="${activeCount}">5</strong> <span th:text="${activeCount == 1} ? 'listing' : 'listings'">listings</span> on the board<th:block th:if="${soldCount > 0}">
+                and have sold <strong th:text="${soldCount}">2</strong> <span th:text="${soldCount == 1} ? 'item' : 'items'">items</span>
+                for <strong th:text="${@fmt.inr(soldValue)}">₹1,200</strong> in total</th:block>.
+            </p>
+            <p th:if="${activeCount + soldCount == 0}">Everything you list shows up here, ready to edit, mark as sold or remove.</p>
+        </div>
+        <div class="page-head__actions">
+            <a th:href="@{/books/new}" class="btn btn--primary">
+                <svg th:replace="~{fragments/icons :: icon('book')}"></svg> List a textbook
+            </a>
+            <a th:href="@{/devices/new}" class="btn">
+                <svg th:replace="~{fragments/icons :: icon('device')}"></svg> List a device
+            </a>
+        </div>
+    </div>
+
+    <nav class="tabs" aria-label="Jump to">
+        <a href="#my-books">Textbooks <span class="count" th:text="${#lists.size(myBooks)}">3</span></a>
+        <a href="#my-devices">Devices <span class="count" th:text="${#lists.size(myDevices)}">2</span></a>
+    </nav>
+
+    <section class="dash-section" id="my-books" aria-labelledby="my-books-title">
+        <div class="dash-section__head">
+            <h2 id="my-books-title">Textbooks</h2>
+        </div>
+        <ul class="rows" th:unless="${#lists.isEmpty(myBooks)}">
+            <li class="row" th:each="book : ${myBooks}" th:classappend="${!book.available} ? 'is-sold'">
+                <div class="row__main">
+                    <h3 class="row__title"><a th:href="@{/books/{id}(id=${book.id})}" th:text="${book.title}">Book title</a></h3>
+                    <div class="row__meta">
+                        <span class="tag" th:classappend="${book.available} ? 'tag--live' : 'tag--sold'"
+                              th:text="${book.available} ? 'On the board' : 'Sold'">On the board</span>
+                        <span th:replace="~{fragments/cards :: wear(${book.condition})}"></span>
+                        <span th:text="'Listed ' + ${@fmt.ago(book.createdAt)}">Listed today</span>
+                    </div>
+                </div>
+                <span class="price" th:text="${@fmt.inr(book.price)}">₹400</span>
+                <div class="row__actions">
+                    <a th:href="@{/books/{id}/edit(id=${book.id})}" class="btn btn--sm"
+                       th:attr="aria-label='Edit ' + ${book.title}">
+                        <svg th:replace="~{fragments/icons :: icon('edit')}"></svg> Edit
+                    </a>
+                    <form th:if="${book.available}" th:action="@{/books/{id}/sold(id=${book.id})}" method="post"
+                          th:attr="data-confirm=${book.title} + ' will show as sold and drop out of search. You can put it back later.'"
+                          data-confirm-title="Mark as sold?" data-confirm-action="Mark as sold" data-confirm-tone="neutral">
+                        <button type="submit" class="btn btn--sm" th:attr="aria-label='Mark ' + ${book.title} + ' as sold'">
+                            <svg th:replace="~{fragments/icons :: icon('check')}"></svg> Sold
+                        </button>
+                    </form>
+                    <form th:unless="${book.available}" th:action="@{/books/{id}/available(id=${book.id})}" method="post">
+                        <button type="submit" class="btn btn--sm" th:attr="aria-label='Put ' + ${book.title} + ' back on sale'">
+                            <svg th:replace="~{fragments/icons :: icon('undo')}"></svg> Relist
+                        </button>
+                    </form>
+                    <form th:action="@{/books/{id}/delete(id=${book.id})}" method="post"
+                          th:attr="data-confirm=${book.title} + ' will be removed for good.'"
+                          data-confirm-title="Delete this listing?" data-confirm-action="Delete">
+                        <button type="submit" class="btn btn--sm btn--danger-quiet" th:attr="aria-label='Delete ' + ${book.title}">
+                            <svg th:replace="~{fragments/icons :: icon('trash')}"></svg>
+                            <span class="visually-hidden">Delete</span>
+                        </button>
+                    </form>
+                </div>
+            </li>
+        </ul>
+        <div class="empty" th:if="${#lists.isEmpty(myBooks)}">
+            <svg th:replace="~{fragments/icons :: icon('book')}"></svg>
+            <h3>No textbooks listed</h3>
+            <p>Books from finished courses are exactly what next semester&rsquo;s students are searching for.</p>
+            <div class="empty__actions">
+                <a th:href="@{/books/new}" class="btn btn--primary">List a textbook</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="dash-section" id="my-devices" aria-labelledby="my-devices-title">
+        <div class="dash-section__head">
+            <h2 id="my-devices-title">Devices</h2>
+        </div>
+        <ul class="rows" th:unless="${#lists.isEmpty(myDevices)}">
+            <li class="row" th:each="device : ${myDevices}" th:classappend="${!device.available} ? 'is-sold'">
+                <div class="row__main">
+                    <h3 class="row__title"><a th:href="@{/devices/{id}(id=${device.id})}" th:text="${device.name}">Device</a></h3>
+                    <div class="row__meta">
+                        <span class="tag" th:classappend="${device.available} ? 'tag--live' : 'tag--sold'"
+                              th:text="${device.available} ? 'On the board' : 'Sold'">On the board</span>
+                        <span class="tag tag--device" th:text="${device.categoryLabel}">Laptop</span>
+                        <span th:text="'Listed ' + ${@fmt.ago(device.createdAt)}">Listed today</span>
+                    </div>
+                </div>
+                <span class="price" th:text="${@fmt.inr(device.price)}">₹25,000</span>
+                <div class="row__actions">
+                    <a th:href="@{/devices/{id}/edit(id=${device.id})}" class="btn btn--sm"
+                       th:attr="aria-label='Edit ' + ${device.name}">
+                        <svg th:replace="~{fragments/icons :: icon('edit')}"></svg> Edit
+                    </a>
+                    <form th:if="${device.available}" th:action="@{/devices/{id}/sold(id=${device.id})}" method="post"
+                          th:attr="data-confirm=${device.name} + ' will show as sold and drop out of search. You can put it back later.'"
+                          data-confirm-title="Mark as sold?" data-confirm-action="Mark as sold" data-confirm-tone="neutral">
+                        <button type="submit" class="btn btn--sm" th:attr="aria-label='Mark ' + ${device.name} + ' as sold'">
+                            <svg th:replace="~{fragments/icons :: icon('check')}"></svg> Sold
+                        </button>
+                    </form>
+                    <form th:unless="${device.available}" th:action="@{/devices/{id}/available(id=${device.id})}" method="post">
+                        <button type="submit" class="btn btn--sm" th:attr="aria-label='Put ' + ${device.name} + ' back on sale'">
+                            <svg th:replace="~{fragments/icons :: icon('undo')}"></svg> Relist
+                        </button>
+                    </form>
+                    <form th:action="@{/devices/{id}/delete(id=${device.id})}" method="post"
+                          th:attr="data-confirm=${device.name} + ' will be removed for good.'"
+                          data-confirm-title="Delete this listing?" data-confirm-action="Delete">
+                        <button type="submit" class="btn btn--sm btn--danger-quiet" th:attr="aria-label='Delete ' + ${device.name}">
+                            <svg th:replace="~{fragments/icons :: icon('trash')}"></svg>
+                            <span class="visually-hidden">Delete</span>
+                        </button>
+                    </form>
+                </div>
+            </li>
+        </ul>
+        <div class="empty" th:if="${#lists.isEmpty(myDevices)}">
+            <svg th:replace="~{fragments/icons :: icon('device')}"></svg>
+            <h3>No devices listed</h3>
+            <p>Old calculator, tablet or headphones in a drawer? List them here and they&rsquo;ll show up in the device catalogue.</p>
+            <div class="empty__actions">
+                <a th:href="@{/devices/new}" class="btn btn--primary">List a device</a>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<dialog th:replace="~{fragments/layout :: confirm-dialog}"></dialog>
+</body>
+</html>

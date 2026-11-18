@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<body>
+
+<!--
+  Wear meter: four bars, filled to ItemCondition.grade (NEW = 4 ... FAIR = 1), always next to the text label
+  so colour is never the only cue.
+-->
+<span th:fragment="wear(condition)" class="wear" th:attr="data-grade=${condition.grade}"
+      th:title="${condition.hint}">
+    <span class="wear__bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+    <span class="wear__label" th:text="${condition.label}">Good</span>
+</span>
+
+<!-- A textbook notice. The whole card is one link; the title is the accessible name. -->
+<article th:fragment="book(book, headingLevel)" class="notice" th:classappend="${!book.available} ? 'is-sold'">
+    <div class="notice__top">
+        <span th:replace="~{fragments/cards :: wear(${book.condition})}"></span>
+        <span class="tag" th:if="${book.semester != null}" th:text="'Sem ' + ${book.semester}">Sem 4</span>
+    </div>
+    <h3 th:if="${headingLevel == 3}" class="notice__title">
+        <a th:href="@{/books/{id}(id=${book.id})}" class="notice__link" th:text="${book.title}">Operating System Concepts</a>
+    </h3>
+    <h2 th:unless="${headingLevel == 3}" class="notice__title">
+        <a th:href="@{/books/{id}(id=${book.id})}" class="notice__link" th:text="${book.title}">Operating System Concepts</a>
+    </h2>
+    <p class="notice__by" th:text="${book.author}">Silberschatz, Galvin, Gagne</p>
+    <p class="notice__meta" th:if="${book.subject}" th:text="${book.subject}">Operating Systems</p>
+    <div class="notice__foot">
+        <span class="price" th:text="${@fmt.inr(book.price)}">₹500</span>
+        <span class="notice__when" th:text="'Listed ' + ${@fmt.ago(book.createdAt)}">Listed today</span>
+    </div>
+    <span class="stamp" th:unless="${book.available}" aria-label="Sold">Sold</span>
+</article>
+
+<!-- A device notice, rendered from a DeviceResponse. -->
+<article th:fragment="device(device, headingLevel)" class="notice notice--device" th:classappend="${!device.available} ? 'is-sold'">
+    <div class="notice__top">
+        <span th:replace="~{fragments/cards :: wear(${device.condition})}"></span>
+        <span class="tag tag--device" th:text="${device.categoryLabel}">Laptop</span>
+    </div>
+    <h3 th:if="${headingLevel == 3}" class="notice__title">
+        <a th:href="@{/devices/{id}(id=${device.id})}" class="notice__link" th:text="${device.name}">Dell Inspiron</a>
+    </h3>
+    <h2 th:unless="${headingLevel == 3}" class="notice__title">
+        <a th:href="@{/devices/{id}(id=${device.id})}" class="notice__link" th:text="${device.name}">Dell Inspiron</a>
+    </h2>
+    <p class="notice__by" th:if="${device.brand}" th:text="${device.brand}">Dell</p>
+    <div class="notice__foot">
+        <span class="price" th:text="${@fmt.inr(device.price)}">₹28,000</span>
+        <span class="notice__when" th:text="'Listed ' + ${@fmt.ago(device.createdAt)}">Listed today</span>
+    </div>
+    <span class="stamp" th:unless="${device.available}" aria-label="Sold">Sold</span>
+</article>
+
+</body>
+</html>

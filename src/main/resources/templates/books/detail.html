@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head(${book.title})}"></head>
+<body>
+<a th:replace="~{fragments/layout :: skip}"></a>
+<header th:replace="~{fragments/layout :: site-header}"></header>
+<div th:replace="~{fragments/layout :: alerts}"></div>
+
+<main id="main" class="container page">
+    <a th:href="@{/books}" class="link-back">
+        <svg th:replace="~{fragments/icons :: icon('arrow-left')}"></svg> All textbooks
+    </a>
+
+    <div class="detail">
+        <article class="sheet" th:classappend="${justPublished != null} ? 'is-pinned' : (${justSold != null} ? 'just-sold' : '')">
+            <div class="sheet__top">
+                <span th:replace="~{fragments/cards :: wear(${book.condition})}"></span>
+                <span class="tag" th:if="${book.semester != null}" th:text="'Semester ' + ${book.semester}">Semester 4</span>
+                <span class="tag tag--sold" th:unless="${book.available}">Sold</span>
+            </div>
+
+            <h1 th:text="${book.title}">Operating System Concepts</h1>
+            <p class="sheet__by" th:text="'by ' + ${book.author}">by Silberschatz, Galvin, Gagne</p>
+
+            <dl class="specs">
+                <div th:if="${book.subject}">
+                    <dt>Subject</dt>
+                    <dd th:text="${book.subject}">Operating Systems</dd>
+                </div>
+                <div>
+                    <dt>Condition</dt>
+                    <dd><span th:text="${book.condition.label}">Good</span>
+                        <span class="muted" th:text="${book.condition.hint}">Normal use, light marks</span></dd>
+                </div>
+                <div th:if="${book.isbn}">
+                    <dt>ISBN</dt>
+                    <dd th:text="${book.isbn}">978-1118063330</dd>
+                </div>
+                <div>
+                    <dt>Listed</dt>
+                    <dd th:text="${@fmt.date(book.createdAt)}">10 Oct 2026</dd>
+                </div>
+            </dl>
+
+            <div class="prose">
+                <h2>Seller&rsquo;s notes</h2>
+                <p th:if="${!#strings.isEmpty(book.description)}" th:text="${book.description}">Notes</p>
+                <p th:if="${#strings.isEmpty(book.description)}" class="muted">The seller didn&rsquo;t add notes. Ask them about edition and markings.</p>
+            </div>
+
+            <span class="stamp" th:unless="${book.available}" aria-hidden="true">Sold</span>
+        </article>
+
+        <aside class="aside" aria-label="Price and seller">
+            <section class="panel panel--price">
+                <h2>Asking price</h2>
+                <span class="price" th:text="${@fmt.inr(book.price)}">₹500</span>
+                <p class="muted" th:if="${book.available}">Agree the final price when you meet.</p>
+                <p class="muted" th:unless="${book.available}">This book has been sold.</p>
+            </section>
+
+            <section class="panel" th:unless="${seller.viewerIsOwner}">
+                <h2>Seller</h2>
+                <div class="seller">
+                    <span class="avatar avatar--lg" aria-hidden="true" th:text="${@fmt.initials(seller.fullName)}">AP</span>
+                    <div>
+                        <p class="seller__name" th:text="${seller.fullName}">Aarav Patel</p>
+                        <p class="seller__dept" th:if="${seller.department}" th:text="${seller.department}">Computer Science</p>
+                    </div>
+                </div>
+                <ul class="contact" th:if="${seller.contactVisible}">
+                    <li><a th:href="'mailto:' + ${seller.email} + '?subject=' + ${#uris.escapeQueryParam('Campus Exchange: ' + book.title)}">
+                        <svg th:replace="~{fragments/icons :: icon('mail')}"></svg>
+                        <span th:text="${seller.email}">seller@campus.edu</span></a></li>
+                    <li th:if="${seller.phone}"><a th:href="'tel:' + ${seller.phone}">
+                        <svg th:replace="~{fragments/icons :: icon('phone')}"></svg>
+                        <span th:text="${seller.phone}">9876543210</span></a></li>
+                </ul>
+                <div class="gate" th:unless="${seller.contactVisible}">
+                    <p>Sign in to see the seller&rsquo;s email and phone.</p>
+                    <a th:href="@{/login}" class="btn btn--primary btn--block">
+                        <svg th:replace="~{fragments/icons :: icon('lock')}"></svg> Sign in to contact
+                    </a>
+                </div>
+            </section>
+
+            <section class="panel" th:if="${seller.viewerIsOwner}">
+                <h2>Your listing</h2>
+                <div class="owner-actions">
+                    <a th:href="@{/books/{id}/edit(id=${book.id})}" class="btn">
+                        <svg th:replace="~{fragments/icons :: icon('edit')}"></svg> Edit details
+                    </a>
+                    <form th:if="${book.available}" th:action="@{/books/{id}/sold(id=${book.id})}" method="post"
+                          data-confirm="Buyers will see it as sold and it drops out of search. You can put it back later."
+                          data-confirm-title="Mark this book as sold?" data-confirm-action="Mark as sold" data-confirm-tone="neutral">
+                        <button type="submit" class="btn btn--primary">
+                            <svg th:replace="~{fragments/icons :: icon('check')}"></svg> Mark as sold
+                        </button>
+                    </form>
+                    <form th:unless="${book.available}" th:action="@{/books/{id}/available(id=${book.id})}" method="post">
+                        <button type="submit" class="btn">
+                            <svg th:replace="~{fragments/icons :: icon('undo')}"></svg> Put back on sale
+                        </button>
+                    </form>
+                    <form th:action="@{/books/{id}/delete(id=${book.id})}" method="post"
+                          data-confirm="This removes the listing for good. It can't be undone."
+                          data-confirm-title="Delete this listing?" data-confirm-action="Delete listing">
+                        <button type="submit" class="btn btn--danger-quiet">
+                            <svg th:replace="~{fragments/icons :: icon('trash')}"></svg> Delete listing
+                        </button>
+                    </form>
+                </div>
+            </section>
+        </aside>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<dialog th:replace="~{fragments/layout :: confirm-dialog}"></dialog>
+</body>
+</html>

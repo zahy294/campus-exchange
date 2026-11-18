@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Not found')}"></head>
+<body>
+<a th:replace="~{fragments/layout :: skip}"></a>
+<header th:replace="~{fragments/layout :: site-header}"></header>
+
+<main id="main" class="container">
+    <div class="error-page">
+        <span class="error-page__code">Error 404</span>
+        <h1>This notice has come off the board.</h1>
+        <p>The listing may have been sold and removed, or the link is mistyped. Everything still for sale is in the textbook and device lists.</p>
+        <div class="error-page__actions">
+            <a th:href="@{/books}" class="btn btn--primary">Browse textbooks</a>
+            <a th:href="@{/devices}" class="btn">Browse devices</a>
+            <a th:href="@{/}" class="btn btn--ghost">Home</a>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

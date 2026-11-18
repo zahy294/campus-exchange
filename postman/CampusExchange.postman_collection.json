@@ -1,0 +1,288 @@
+{
+	"info": {
+		"_postman_id": "c1f7a28b-9801-443b-a947-f4955a16d001",
+		"name": "Campus Exchange API",
+		"description": "Postman Collection for CS3603-1 Campus Exchange Device REST API (/api/devices)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Public Endpoints",
+			"item": [
+				{
+					"name": "GET All Devices (Paged)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/devices?page=0&size=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "devices"],
+							"query": [
+								{ "key": "page", "value": "0" },
+								{ "key": "size", "value": "10" }
+							]
+						}
+					}
+				},
+				{
+					"name": "GET Devices Filtered by Category & Query",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/devices?category=LAPTOP&q=Dell",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "devices"],
+							"query": [
+								{ "key": "category", "value": "LAPTOP" },
+								{ "key": "q", "value": "Dell" }
+							]
+						}
+					}
+				},
+				{
+					"name": "GET Device by ID (Success 200)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/devices/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "devices", "1"]
+						}
+					}
+				},
+				{
+					"name": "GET Device by ID (Not Found 404)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/devices/9999",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "devices", "9999"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Authenticated Operations",
+			"item": [
+				{
+					"name": "GET My Devices (200 OK)",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{ "key": "username", "value": "student1@campus.edu", "type": "string" },
+								{ "key": "password", "value": "password123", "type": "string" }
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/devices/mine",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "devices", "mine"]
+						}
+					}
+				},
+				{
+					"name": "POST Create Device (201 Created)",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{ "key": "username", "value": "student1@campus.edu", "type": "string" },
+								{ "key": "password", "value": "password123", "type": "string" }
+							]
+						},
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Arduino Uno Starter Kit\",\n  \"category\": \"OTHER\",\n  \"brand\": \"Arduino\",\n  \"condition\": \"NEW\",\n  \"price\": 1800.00,\n  \"description\": \"Complete kit with breadboard, sensors, and jumper wires for IoT lab.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/devices",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "devices"]
+						}
+					}
+				},
+				{
+					"name": "PUT Update Device (200 OK - Owner)",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{ "key": "username", "value": "student1@campus.edu", "type": "string" },
+								{ "key": "password", "value": "password123", "type": "string" }
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Dell Inspiron 15 (Upgraded)\",\n  \"category\": \"LAPTOP\",\n  \"brand\": \"Dell\",\n  \"condition\": \"LIKE_NEW\",\n  \"price\": 27000.00,\n  \"description\": \"Price reduced for quick sale.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/devices/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "devices", "1"]
+						}
+					}
+				},
+				{
+					"name": "PATCH Mark Device SOLD (200 OK - Owner)",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{ "key": "username", "value": "student1@campus.edu", "type": "string" },
+								{ "key": "password", "value": "password123", "type": "string" }
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"SOLD\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/devices/1/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "devices", "1", "status"]
+						}
+					}
+				},
+				{
+					"name": "DELETE Device (204 No Content - Owner)",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{ "key": "username", "value": "student1@campus.edu", "type": "string" },
+								{ "key": "password", "value": "password123", "type": "string" }
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/devices/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "devices", "1"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Error & Security Boundary Tests",
+			"item": [
+				{
+					"name": "POST Create Device - Unauthenticated (401 JSON)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Smartwatch\",\n  \"category\": \"ACCESSORY\",\n  \"condition\": \"GOOD\",\n  \"price\": 2000.00\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/devices",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "devices"]
+						}
+					}
+				},
+				{
+					"name": "POST Create Device - Validation Error (400 Bad Request)",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{ "key": "username", "value": "student1@campus.edu", "type": "string" },
+								{ "key": "password", "value": "password123", "type": "string" }
+							]
+						},
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"\",\n  \"category\": \"LAPTOP\",\n  \"condition\": \"GOOD\",\n  \"price\": -50.00\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/devices",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "devices"]
+						}
+					}
+				},
+				{
+					"name": "PUT Update Device - Non-Owner (403 Forbidden)",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{ "key": "username", "value": "student2@campus.edu", "type": "string" },
+								{ "key": "password", "value": "password123", "type": "string" }
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Attempted modification by non-owner\",\n  \"category\": \"LAPTOP\",\n  \"condition\": \"GOOD\",\n  \"price\": 1000.00\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/devices/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "devices", "1"]
+						}
+					}
+				},
+				{
+					"name": "DELETE Device - Non-Owner (403 Forbidden)",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{ "key": "username", "value": "student2@campus.edu", "type": "string" },
+								{ "key": "password", "value": "password123", "type": "string" }
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/devices/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "devices", "1"]
+						}
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	]
+}

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Something went wrong')}"></head>
+<body>
+<a th:replace="~{fragments/layout :: skip}"></a>
+<header th:replace="~{fragments/layout :: site-header}"></header>
+
+<main id="main" class="container">
+    <div class="error-page">
+        <span class="error-page__code">Error 500</span>
+        <h1>Something went wrong on our side.</h1>
+        <p>Your last action may not have been saved. Go back and try again in a moment. If it keeps happening, the server log has the details.</p>
+        <div class="error-page__actions">
+            <a href="javascript:history.back()" class="btn btn--primary">Go back</a>
+            <a th:href="@{/}" class="btn btn--ghost">Home</a>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

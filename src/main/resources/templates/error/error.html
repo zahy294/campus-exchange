@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Something went wrong')}"></head>
+<body>
+<a th:replace="~{fragments/layout :: skip}"></a>
+<header th:replace="~{fragments/layout :: site-header}"></header>
+
+<main id="main" class="container">
+    <div class="error-page">
+        <span class="error-page__code">Error</span>
+        <h1>That didn&rsquo;t work.</h1>
+        <p>The request couldn&rsquo;t be completed. Check the link or go back and try again.</p>
+        <div class="error-page__actions">
+            <a th:href="@{/}" class="btn btn--primary">Home</a>
+            <a th:href="@{/books}" class="btn">Browse textbooks</a>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

@@ -1,0 +1,64 @@
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.built-jar-path
+
+### VS Code ###
+.vscode/
+
+### Environment & secrets ###
+.env
+application-local.properties
+data/
+*.mv.db
+*.trace.db
+
+### Local tool output ###
+.playwright-mcp/
+
+### AI agent / tooling files (not part of the project) ###
+.agents/
+.claude/
+.codex/
+.cursor/
+.gemini/
+.github/agents/
+.github/hooks/
+.github/skills/
+.github/modernize/
+.impeccable/
+.playwright-mcp/
+
+### Local planning, reports and scratch files ###
+PRODUCT.md
+GLOSSARY.md
+IMPLEMENTATION_PLAN.md
+ORIGINAL_REQUEST.md
+jsf.pdf
+*.docx
+report_build/
+temp_init/
+
+docs/ER_DIAGRAM.md

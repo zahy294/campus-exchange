@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head(${isEdit} ? 'Edit device' : 'List a device')}"></head>
+<body>
+<a th:replace="~{fragments/layout :: skip}"></a>
+<header th:replace="~{fragments/layout :: site-header}"></header>
+<div th:replace="~{fragments/layout :: alerts}"></div>
+
+<main id="main" class="container page">
+    <div class="form-shell">
+        <a th:href="${isEdit} ? @{/devices/{id}(id=${deviceId})} : @{/devices}" class="link-back">
+            <svg th:replace="~{fragments/icons :: icon('arrow-left')}"></svg>
+            <span th:text="${isEdit} ? 'Back to listing' : 'Back to devices'">Back</span>
+        </a>
+        <div class="page-head">
+            <div>
+                <h1 th:text="${isEdit} ? 'Edit your device' : 'List a device'">List a device</h1>
+                <p th:unless="${isEdit}">Calculators, laptops, tablets, phones and accessories. Be honest about wear and what&rsquo;s included.</p>
+            </div>
+        </div>
+
+        <form th:action="${isEdit} ? @{/devices/{id}(id=${deviceId})} : @{/devices}" th:object="${deviceForm}"
+              method="post" class="form-card" novalidate>
+
+            <p class="flash flash--error" role="alert" th:if="${#fields.hasErrors('*')}">
+                <svg th:replace="~{fragments/icons :: icon('alert')}"></svg>
+                <span>Some details need fixing. They&rsquo;re marked below.</span>
+            </p>
+
+            <fieldset class="fieldset">
+                <legend>The device</legend>
+                <div class="field">
+                    <label for="name" class="label">Name</label>
+                    <input type="text" id="name" th:field="*{name}" class="input" th:errorclass="is-invalid"
+                           maxlength="150" required placeholder="e.g. Casio fx-991EX ClassWiz"
+                           th:attr="aria-invalid=${#fields.hasErrors('name')} ? 'true' : null,aria-describedby=${#fields.hasErrors('name')} ? 'name-error' : null">
+                    <p th:replace="~{fragments/layout :: field-error('name')}"></p>
+                </div>
+                <div class="field-row">
+                    <div class="field">
+                        <label for="category" class="label">Category</label>
+                        <select id="category" th:field="*{category}" class="input" th:errorclass="is-invalid" required
+                                th:attr="aria-invalid=${#fields.hasErrors('category')} ? 'true' : null,aria-describedby=${#fields.hasErrors('category')} ? 'category-error' : null">
+                            <option value="">Choose a category</option>
+                            <option th:each="cat : ${categories}" th:value="${cat.name()}" th:text="${cat.label}">Laptop</option>
+                        </select>
+                        <p th:replace="~{fragments/layout :: field-error('category')}"></p>
+                    </div>
+                    <div class="field">
+                        <label for="brand" class="label">Brand <span class="optional">Optional</span></label>
+                        <input type="text" id="brand" th:field="*{brand}" class="input" th:errorclass="is-invalid"
+                               maxlength="100" placeholder="e.g. Casio"
+                               th:attr="aria-invalid=${#fields.hasErrors('brand')} ? 'true' : null,aria-describedby=${#fields.hasErrors('brand')} ? 'brand-error' : null">
+                        <p th:replace="~{fragments/layout :: field-error('brand')}"></p>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset class="fieldset">
+                <legend>Condition and price</legend>
+                <div class="field">
+                    <p class="label" id="condition-label">Condition</p>
+                    <div class="choices" role="radiogroup" aria-labelledby="condition-label"
+                         th:classappend="${#fields.hasErrors('condition')} ? 'is-invalid'"
+                         th:attr="aria-describedby=${#fields.hasErrors('condition')} ? 'condition-error' : null">
+                        <label class="choice" th:each="cond : ${conditions}">
+                            <input type="radio" th:field="*{condition}" th:value="${cond}" required>
+                            <span class="choice__face">
+                                <span th:replace="~{fragments/cards :: wear(${cond})}"></span>
+                                <span class="choice__hint" th:text="${cond.hint}">Normal use, light marks</span>
+                            </span>
+                        </label>
+                    </div>
+                    <p th:replace="~{fragments/layout :: field-error('condition')}"></p>
+                </div>
+                <div class="field">
+                    <label for="price" class="label">Price</label>
+                    <div class="input-affix">
+                        <span class="input-affix__sign" aria-hidden="true">₹</span>
+                        <input type="number" id="price" th:field="*{price}" class="input" th:errorclass="is-invalid"
+                               step="0.01" min="0" max="500000" inputmode="decimal" required placeholder="4500"
+                               th:attr="aria-invalid=${#fields.hasErrors('price')} ? 'true' : null,aria-describedby=${#fields.hasErrors('price')} ? 'price-error' : 'price-hint'">
+                    </div>
+                    <p class="hint" id="price-hint" th:unless="${#fields.hasErrors('price')}">In rupees, up to ₹5,00,000.</p>
+                    <p th:replace="~{fragments/layout :: field-error('price')}"></p>
+                </div>
+            </fieldset>
+
+            <fieldset class="fieldset">
+                <legend>Notes for buyers</legend>
+                <div class="field">
+                    <label for="description" class="label">Description <span class="optional">Optional</span></label>
+                    <textarea id="description" th:field="*{description}" class="input" th:errorclass="is-invalid" rows="4"
+                              maxlength="1000" data-counter="description-count"
+                              placeholder="Specs, battery health, scratches, what's in the box (charger, case, cable)"
+                              th:attr="aria-invalid=${#fields.hasErrors('description')} ? 'true' : null,aria-describedby=${#fields.hasErrors('description')} ? 'description-error' : 'description-count'"></textarea>
+                    <p class="counter" id="description-count" aria-live="polite"></p>
+                    <p th:replace="~{fragments/layout :: field-error('description')}"></p>
+                </div>
+            </fieldset>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn--primary btn--lg"
+                        th:attr="data-busy-label=${isEdit} ? 'Saving' : 'Publishing'">
+                    <span th:text="${isEdit} ? 'Save changes' : 'Publish listing'">Publish listing</span>
+                </button>
+                <a th:href="${isEdit} ? @{/devices/{id}(id=${deviceId})} : @{/devices}" class="btn btn--ghost">Cancel</a>
+            </div>
+        </form>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

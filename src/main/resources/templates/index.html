@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="en">
+<head th:replace="~{fragments/layout :: head('Second-hand textbooks and devices on campus')}"></head>
+<body>
+<a th:replace="~{fragments/layout :: skip}"></a>
+<header th:replace="~{fragments/layout :: site-header}"></header>
+<div th:replace="~{fragments/layout :: alerts}"></div>
+
+<main id="main">
+    <section class="finder" aria-labelledby="finder-title">
+        <div class="container">
+            <div class="finder__inner">
+                <h1 id="finder-title">Find this semester&rsquo;s books for less.</h1>
+                <p class="finder__lede">
+                    Used textbooks and gadgets from students on your campus:
+                    <strong th:text="${bookCount}">10</strong> <span th:text="${bookCount == 1} ? 'book' : 'books'">books</span> and
+                    <strong th:text="${deviceCount}">8</strong> <span th:text="${deviceCount == 1} ? 'device' : 'devices'">devices</span> on the board right now.
+                </p>
+
+                <form th:action="@{/books}" method="get" role="search" class="searchbar">
+                    <svg th:replace="~{fragments/icons :: icon('search')}"></svg>
+                    <label for="home-q" class="visually-hidden">Search textbooks</label>
+                    <input id="home-q" type="search" name="q" maxlength="100"
+                           placeholder="Title, author or subject" autocomplete="off">
+                    <button type="submit" class="btn btn--primary">Search books</button>
+                </form>
+
+                <div class="semesters">
+                    <p class="semesters__label" id="sem-label">Or browse by semester</p>
+                    <ul class="chips" aria-labelledby="sem-label">
+                        <li th:each="entry : ${semesterCounts}">
+                            <a class="chip" th:classappend="${entry.value == 0} ? 'is-empty'"
+                               th:href="@{/books(semester=${entry.key})}"
+                               th:attr="aria-label='Semester ' + ${entry.key} + ', ' + ${entry.value} + (${entry.value == 1} ? ' book' : ' books')">
+                                <span th:text="'Sem ' + ${entry.key}">Sem 1</span>
+                                <span class="chip__count" th:text="${entry.value}">0</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="container">
+        <section class="section" aria-labelledby="fresh-books">
+            <div class="section__head">
+                <h2 id="fresh-books">Fresh on the board</h2>
+                <a th:href="@{/books}" class="link-more">All textbooks
+                    <svg th:replace="~{fragments/icons :: icon('arrow-right')}"></svg></a>
+            </div>
+            <div class="board board--preview" th:unless="${#lists.isEmpty(featuredBooks)}">
+                <th:block th:each="book : ${featuredBooks}"><article th:replace="~{fragments/cards :: book(${book}, 3)}"></article></th:block>
+            </div>
+            <div class="empty" th:if="${#lists.isEmpty(featuredBooks)}">
+                <svg th:replace="~{fragments/icons :: icon('book')}"></svg>
+                <h3>No textbooks on the board yet</h3>
+                <p>Clearing out last semester&rsquo;s shelf? Your listing would be the first one here.</p>
+                <div class="empty__actions">
+                    <a th:href="@{/books/new}" class="btn btn--primary">List a textbook</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" aria-labelledby="fresh-devices">
+            <div class="section__head">
+                <h2 id="fresh-devices">Calculators, laptops and more</h2>
+                <a th:href="@{/devices}" class="link-more">All devices
+                    <svg th:replace="~{fragments/icons :: icon('arrow-right')}"></svg></a>
+            </div>
+            <div class="board board--preview" th:unless="${#lists.isEmpty(featuredDevices)}">
+                <th:block th:each="device : ${featuredDevices}"><article th:replace="~{fragments/cards :: device(${device}, 3)}"></article></th:block>
+            </div>
+            <div class="empty" th:if="${#lists.isEmpty(featuredDevices)}">
+                <svg th:replace="~{fragments/icons :: icon('device')}"></svg>
+                <h3>No devices listed yet</h3>
+                <p>Upgraded your calculator or laptop? Someone in first year needs your old one.</p>
+                <div class="empty__actions">
+                    <a th:href="@{/devices/new}" class="btn btn--primary">List a device</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" aria-labelledby="how-title">
+            <h2 id="how-title" class="visually-hidden">How it works</h2>
+            <ol class="how">
+                <li><strong>Pin it up</strong><span>List a book or device in about a minute: title, condition, price.</span></li>
+                <li><strong>Get found</strong><span>Classmates search by subject and semester, not by scrolling.</span></li>
+                <li><strong>Meet on campus</strong><span>Signed-in students see your contact details. No shipping, no fees.</span></li>
+            </ol>
+        </section>
+
+        <section class="callout" aria-labelledby="sell-title">
+            <div>
+                <h2 id="sell-title">Done with last semester&rsquo;s books?</h2>
+                <p>Pass them on to the next batch and get some of your money back.</p>
+            </div>
+            <a sec:authorize="isAuthenticated()" th:href="@{/books/new}" class="btn btn--primary btn--lg">List a textbook</a>
+            <a sec:authorize="!isAuthenticated()" th:href="@{/register}" class="btn btn--primary btn--lg">Create a free account</a>
+        </section>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

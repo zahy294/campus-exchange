@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="en">
+<head th:replace="~{fragments/layout :: head('Textbooks')}"></head>
+<body>
+<a th:replace="~{fragments/layout :: skip}"></a>
+<header th:replace="~{fragments/layout :: site-header}"></header>
+<div th:replace="~{fragments/layout :: alerts}"></div>
+
+<main id="main" class="container page">
+    <div class="page-head">
+        <div>
+            <h1>Textbooks</h1>
+            <p>Used copies from students who&rsquo;ve finished the course. Contact the seller and meet on campus.</p>
+        </div>
+        <div class="page-head__actions">
+            <a th:href="@{/books/new}" class="btn btn--primary">
+                <svg th:replace="~{fragments/icons :: icon('plus')}"></svg> List a textbook
+            </a>
+        </div>
+    </div>
+
+    <form th:action="@{/books}" method="get" class="filters" role="search" aria-label="Filter textbooks">
+        <div class="field field--search">
+            <label for="q" class="label">Search</label>
+            <input type="search" id="q" name="q" th:value="${q}" class="input" maxlength="100"
+                   placeholder="Title, author or subject">
+        </div>
+        <div class="field">
+            <label for="semester" class="label">Semester</label>
+            <select id="semester" name="semester" class="input">
+                <option value="">Any semester</option>
+                <option th:each="sem : ${#numbers.sequence(1, 8)}" th:value="${sem}"
+                        th:text="'Semester ' + ${sem}" th:selected="${semester == sem}">Semester 1</option>
+            </select>
+        </div>
+        <div class="field">
+            <label for="sort" class="label">Sort by</label>
+            <select id="sort" name="sort" class="input">
+                <option th:each="opt : ${sorts}" th:value="${opt.key}" th:text="${opt.label}"
+                        th:selected="${sort == opt.key}">Newest first</option>
+            </select>
+        </div>
+        <div class="filters__actions">
+            <button type="submit" class="btn btn--primary">
+                <svg th:replace="~{fragments/icons :: icon('search')}"></svg> Search
+            </button>
+        </div>
+    </form>
+
+    <div class="results-bar" role="status">
+        <p>
+            <strong th:text="${booksPage.totalElements}">10</strong>
+            <span th:text="${booksPage.totalElements == 1} ? 'book available' : 'books available'">books available</span>
+        </p>
+        <div class="active-filters" th:if="${!#strings.isEmpty(q) or semester != null}">
+            <a class="chip" th:if="${!#strings.isEmpty(q)}" th:href="@{/books(semester=${semester}, sort=${sort})}"
+               th:attr="aria-label='Remove search ' + ${q}">
+                <span th:text="'“' + ${q} + '”'">"os"</span>
+                <svg th:replace="~{fragments/icons :: icon('x')}"></svg>
+            </a>
+            <a class="chip" th:if="${semester != null}" th:href="@{/books(q=${q}, sort=${sort})}"
+               th:attr="aria-label='Remove semester ' + ${semester} + ' filter'">
+                <span th:text="'Semester ' + ${semester}">Semester 4</span>
+                <svg th:replace="~{fragments/icons :: icon('x')}"></svg>
+            </a>
+            <a class="link-more small" th:href="@{/books}">Clear all</a>
+        </div>
+    </div>
+
+    <h2 class="visually-hidden">Results</h2>
+    <div class="board" th:unless="${booksPage.empty}">
+        <th:block th:each="book : ${booksPage.content}"><article th:replace="~{fragments/cards :: book(${book}, 3)}"></article></th:block>
+    </div>
+
+    <div class="empty" th:if="${booksPage.empty}">
+        <svg th:replace="~{fragments/icons :: icon('search')}"></svg>
+        <h3 th:text="${booksPage.totalElements > 0} ? 'That page is empty' : 'No books match yet'">No books match yet</h3>
+        <p th:if="${booksPage.totalElements == 0}">
+            Try a shorter search, another semester, or check back later. New books go up all the time near the start of term.
+        </p>
+        <p th:if="${booksPage.totalElements > 0}">You've gone past the last page of results.</p>
+        <div class="empty__actions">
+            <a th:href="@{/books}" class="btn">Clear filters</a>
+            <a th:href="@{/books/new}" class="btn btn--primary">List the book you have</a>
+        </div>
+    </div>
+
+    <nav class="pagination" th:if="${totalPages > 1}" aria-label="Pages">
+        <a th:if="${currentPage > 0}" class="pagination__step"
+           th:href="@{/books(page=${currentPage - 1}, q=${q}, semester=${semester}, sort=${sort})}">
+            <svg th:replace="~{fragments/icons :: icon('chevron-left')}"></svg> Previous
+        </a>
+        <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+            <span th:if="${i == currentPage}" aria-current="page" th:text="${i + 1}">1</span>
+            <a th:unless="${i == currentPage}" th:href="@{/books(page=${i}, q=${q}, semester=${semester}, sort=${sort})}"
+               th:text="${i + 1}" th:attr="aria-label='Page ' + ${i + 1}">2</a>
+        </th:block>
+        <a th:if="${currentPage < totalPages - 1}" class="pagination__step"
+           th:href="@{/books(page=${currentPage + 1}, q=${q}, semester=${semester}, sort=${sort})}">
+            Next <svg th:replace="~{fragments/icons :: icon('chevron-right')}"></svg>
+        </a>
+    </nav>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

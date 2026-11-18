@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Create an account')}"></head>
+<body>
+<a th:replace="~{fragments/layout :: skip}"></a>
+<header th:replace="~{fragments/layout :: site-header}"></header>
+
+<main id="main" class="container auth">
+    <div class="form-shell--narrow">
+        <h1>Join Campus Exchange</h1>
+        <p class="auth__lede">One account to list your books and devices and contact other sellers.</p>
+
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <form th:action="@{/register}" th:object="${registerForm}" method="post" class="form-card" novalidate>
+            <div class="field">
+                <label for="fullName" class="label">Full name</label>
+                <input type="text" id="fullName" th:field="*{fullName}" class="input" th:errorclass="is-invalid"
+                       autocomplete="name" minlength="2" maxlength="100" required
+                       th:attr="aria-invalid=${#fields.hasErrors('fullName')} ? 'true' : null,aria-describedby=${#fields.hasErrors('fullName')} ? 'fullName-error' : null">
+                <p th:replace="~{fragments/layout :: field-error('fullName')}"></p>
+            </div>
+
+            <div class="field">
+                <label for="email" class="label">Email</label>
+                <input type="email" id="email" th:field="*{email}" class="input" th:errorclass="is-invalid"
+                       autocomplete="email" inputmode="email" maxlength="150" required
+                       placeholder="you@campus.edu"
+                       th:attr="aria-invalid=${#fields.hasErrors('email')} ? 'true' : null,aria-describedby=${#fields.hasErrors('email')} ? 'email-error' : 'email-hint'">
+                <p class="hint" id="email-hint" th:unless="${#fields.hasErrors('email')}">This is what you&rsquo;ll sign in with. Buyers see it once they sign in.</p>
+                <p th:replace="~{fragments/layout :: field-error('email')}"></p>
+                <p class="hint" th:if="${#fields.hasErrors('email') and #strings.contains(#fields.errors('email')[0], 'already exists')}">
+                    Is it yours? <a th:href="@{/login}">Sign in instead</a>.
+                </p>
+            </div>
+
+            <div class="field">
+                <label for="password" class="label">Password</label>
+                <input type="password" id="password" th:field="*{password}" class="input" th:errorclass="is-invalid"
+                       autocomplete="new-password" minlength="8" maxlength="64" required
+                       th:attr="aria-invalid=${#fields.hasErrors('password')} ? 'true' : null,aria-describedby=${#fields.hasErrors('password')} ? 'password-error' : 'password-hint'">
+                <p class="hint" id="password-hint" th:unless="${#fields.hasErrors('password')}">At least 8 characters, with a letter and a number.</p>
+                <p th:replace="~{fragments/layout :: field-error('password')}"></p>
+            </div>
+
+            <div class="field">
+                <label for="confirmPassword" class="label">Confirm password</label>
+                <input type="password" id="confirmPassword" th:field="*{confirmPassword}" class="input"
+                       th:classappend="${#fields.hasErrors('confirmPassword') or #fields.hasErrors('confirmPasswordValid')} ? 'is-invalid'"
+                       autocomplete="new-password" maxlength="64" required
+                       th:attr="aria-invalid=${#fields.hasErrors('confirmPassword') or #fields.hasErrors('confirmPasswordValid')} ? 'true' : null,aria-describedby=${#fields.hasErrors('confirmPasswordValid')} ? 'confirmPasswordValid-error' : (${#fields.hasErrors('confirmPassword')} ? 'confirmPassword-error' : null)">
+                <p th:replace="~{fragments/layout :: field-error('confirmPassword')}"></p>
+                <p th:replace="~{fragments/layout :: field-error('confirmPasswordValid')}"></p>
+            </div>
+
+            <details class="disclosure"
+                     th:open="${#fields.hasErrors('phone') or #fields.hasErrors('department') or !#strings.isEmpty(registerForm.phone) or !#strings.isEmpty(registerForm.department)}">
+                <summary>Add phone and department <span class="muted">(optional)</span>
+                    <svg th:replace="~{fragments/icons :: icon('chevron-down')}"></svg></summary>
+                <div class="disclosure__body">
+                    <div class="field">
+                        <label for="department" class="label">Department</label>
+                        <input type="text" id="department" th:field="*{department}" class="input" th:errorclass="is-invalid"
+                               maxlength="100" autocomplete="organization-title" placeholder="e.g. Computer Science"
+                               th:attr="aria-invalid=${#fields.hasErrors('department')} ? 'true' : null,aria-describedby=${#fields.hasErrors('department')} ? 'department-error' : null">
+                        <p th:replace="~{fragments/layout :: field-error('department')}"></p>
+                    </div>
+                    <div class="field">
+                        <label for="phone" class="label">Mobile number</label>
+                        <input type="tel" id="phone" th:field="*{phone}" class="input" th:errorclass="is-invalid"
+                               autocomplete="tel" inputmode="tel" maxlength="16" placeholder="9876543210"
+                               pattern="(\+91[- ]?)?[6-9][0-9]{9}"
+                               th:attr="aria-invalid=${#fields.hasErrors('phone')} ? 'true' : null,aria-describedby=${#fields.hasErrors('phone')} ? 'phone-error' : 'phone-hint'">
+                        <p class="hint" id="phone-hint" th:unless="${#fields.hasErrors('phone')}">Shown to signed-in buyers so they can text you.</p>
+                        <p th:replace="~{fragments/layout :: field-error('phone')}"></p>
+                    </div>
+                </div>
+            </details>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn--primary btn--block" data-busy-label="Creating account"><span>Create account</span></button>
+            </div>
+        </form>
+
+        <p class="auth__switch">Already have an account? <a th:href="@{/login}">Sign in</a></p>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>
